@@ -4,7 +4,7 @@ General idea: Take many labeled images from the Internet and throw them into dif
 
 Step 1: Data aquisition
 --------------
-Parse <gelbooru.com> (NSFW).
+Parse [Gelbooru](http://gelbooru.com/) (NSFW).
 1. Write textual results into SQLite Database.
 2. Data analysis: Find promising labels/tags, sizes and other useful attributes.
 3. Download appropriate images.
@@ -16,7 +16,7 @@ Use TensorFlow. (Yuck! Google!)
 And read a lot of papers/tutorials.
 
 Ideas: 
-* My own [Deepdreaming](en.wikipedia.org/wiki/Deepdreaming) Network.
+* My own [Deepdreaming](https://en.wikipedia.org/wiki/Deepdreaming) Network.
 * Image recognition/ automatic labeling.
 * Generating networks for my very own AI generated Waifu.
 
