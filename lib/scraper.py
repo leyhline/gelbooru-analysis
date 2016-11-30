@@ -2,6 +2,8 @@ import re
 from datetime import datetime
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+from urllib.parse import urlencode
+from functools import reduce
 
 BOORU_URL = "http://gelbooru.com/"
 
@@ -31,11 +33,7 @@ class BooruView:
 
     def __str__(self):
         """Return a string that looks the same as the title of the original site."""
-        signature = ""
-        for tag in self.tags:
-            signature += tag + " "
-        signature += "- Image View -  | " + self.uid + " | Gelbooru"
-        return signature
+        return self.soup.title.contents[0]
 
     def _parse_tags(self):
         """Return all tags of the view."""
@@ -109,12 +107,15 @@ class BooruList:
         """For iterating through the BooruView objects."""
         return self._views.__next__()
 
+    def __str__(self):
+        return self.soup.title.contents[0]
+
     def _parse_links(self):
         """Returns a list of tumples (id, url) of all views of the page."""
         links = self.soup.select("div#post-list > div.content > div > span.yup > span > a")
         # Only includes objects with id attribute.
         links = [(int(url.get("id")[1:]), url.get("href")) for url in links
-                 if url.get("id") is None]
+                 if url.get("id") is not None]
         return links
 
 
@@ -124,5 +125,36 @@ class BooruQuery:
     You should be able to iterate over the object to get the BooruList objects.
     """
 
-    def __init__(self, soup):
-        self.soup = soup
+    def __init__(self, tags):
+        """Constructor: Takes a list of all the tags you want to query for."""
+        self.tags = tags
+        self.base_url = self._create_url()
+
+    def __iter__(self):
+        self.current_page = 1
+        self.previous_soup = None
+        return self
+    
+    # FIXME lalala = [la.soup.select("div.pagination > b")[0].contents[0] for la in bq]
+    def __next__(self):
+        if self.current_page == 1:
+            self.previous_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
+        else:
+            self.previous_soup = BeautifulSoup(urlopen(next(self._get_next_soup())), "html.parser")
+        self.current_page += 1
+        return BooruList(self.previous_soup)
+
+    def _create_url(self):
+        get_args = {"page": "post", "s": "list"}
+        tags = (tag.replace(" ", "_") for tag in self.tags)
+        # Reduce the list to a single string and add to argument dictionary.
+        get_args["tags"] = reduce(lambda s, t: s + " " + t, tags)
+        url = BOORU_URL + "?" + urlencode(get_args)
+        return url
+
+    def _get_next_soup(self):
+        pages = self.previous_soup.select("div#paginator > div.pagination > a")
+        # Get URL for next page (as generator).
+        next_pages = (BOORU_URL + page.get("href") for page in pages
+                      if not(page.get("alt")) and int(page.contents[0]) > self.current_page)
+        return next_pages
