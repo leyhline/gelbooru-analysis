@@ -131,18 +131,17 @@ class BooruQuery:
         self.base_url = self._create_url()
 
     def __iter__(self):
-        self.current_page = 1
-        self.previous_soup = None
+        self.last_page = 0
+        self.last_soup = None
         return self
     
-    # FIXME lalala = [la.soup.select("div.pagination > b")[0].contents[0] for la in bq]
     def __next__(self):
-        if self.current_page == 1:
-            self.previous_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
+        if self.last_page == 1:
+            self.last_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
         else:
-            self.previous_soup = BeautifulSoup(urlopen(next(self._get_next_soup())), "html.parser")
-        self.current_page += 1
-        return BooruList(self.previous_soup)
+            self.last_soup = BeautifulSoup(urlopen(next(self._get_next_soup())), "html.parser")
+        self.last_page += 1
+        return BooruList(self.last_soup)
 
     def _create_url(self):
         get_args = {"page": "post", "s": "list"}
@@ -153,8 +152,8 @@ class BooruQuery:
         return url
 
     def _get_next_soup(self):
-        pages = self.previous_soup.select("div#paginator > div.pagination > a")
+        pages = self.last_soup.select("div#paginator > div.pagination > a")
         # Get URL for next page (as generator).
         next_pages = (BOORU_URL + page.get("href") for page in pages
-                      if not(page.get("alt")) and int(page.contents[0]) > self.current_page)
+                      if not(page.get("alt")) and int(page.contents[0]) > self.last_page)
         return next_pages
