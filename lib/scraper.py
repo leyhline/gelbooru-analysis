@@ -140,7 +140,7 @@ class BooruQuery:
         return self
 
     def __next__(self):
-        if self.last_page == 1:
+        if self.last_page == 0:
             self.last_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
         else:
             self.last_soup = BeautifulSoup(urlopen(next(self._get_next_soup())), "html.parser")
