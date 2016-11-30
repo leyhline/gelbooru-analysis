@@ -52,22 +52,8 @@ class BooruView:
         matches = ((regex.match(entry), entry) for entry in stats if entry)
         matches = ((match[0].group(), match[1]) for match in matches if match[0] is not None)
         # Write relevant statistics into a new dictionary which is to be returned at the end.
-        statdict = dict()
-        for entry in matches:
-            key = entry[0]
-            value = entry[1]
-            if key == "Id":
-                statdict[key] = int(value[4:])
-            elif key == "Posted":
-                re_datetime = re.compile(r"""[\- :]""")  # Get date and time.
-                param_datetime = map(int, re_datetime.split(value[8:]))
-                obj_datetime = datetime(*param_datetime)
-                statdict[key] = obj_datetime
-            elif key == "Size":
-                sizes = value[6:].split("x")
-                statdict[key] = (sizes[0], sizes[1])
-            elif key == "Rating":
-                statdict[key] = value[8:]
+        statdict = dict((self.__create_dict_entry(match) for match in matches
+                         if self.__create_dict_entry(match)))
         return statdict
 
     def _parse_url(self):
@@ -81,6 +67,24 @@ class BooruView:
             return dictionary[key]
         else:
             return None
+
+    def __create_dict_entry(self, entry):
+        key, value = entry
+        if key == "Id":
+            dict_entry = (key, int(value[4:]))
+        elif key == "Posted":
+            re_datetime = re.compile(r"""[\- :]""")  # Get date and time.
+            param_datetime = map(int, re_datetime.split(value[8:]))
+            obj_datetime = datetime(*param_datetime)
+            dict_entry = (key, obj_datetime)
+        elif key == "Size":
+            sizes = value[6:].split("x")
+            dict_entry = (key, (sizes[0], sizes[1]))
+        elif key == "Rating":
+            dict_entry = (key, value[8:])
+        else:
+            dict_entry = None
+        return dict_entry
 
 
 class BooruList:
@@ -134,7 +138,7 @@ class BooruQuery:
         self.last_page = 0
         self.last_soup = None
         return self
-    
+
     def __next__(self):
         if self.last_page == 1:
             self.last_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
