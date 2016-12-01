@@ -1,0 +1,20 @@
+version: 1
+formatters:
+    simple:
+        format: '%(asctime)s - %(levelname)s - %(funcName)s - %(message)s'
+    human:
+        format: '[%(levelname)s] %(funcName)s: %(message)s'
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: WARNING
+        formatter: human
+        stream: ext://sys.stderr
+    file:
+        class: logging.FileHandler
+        level: DEBUG
+        formatter: simple
+        filename: scraper.log
+root:
+  level: DEBUG
+  handlers: [console, file]
