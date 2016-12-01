@@ -37,7 +37,7 @@ class BooruView:
 
     def _parse_tags(self):
         """Return all tags of the view."""
-        tags = self.soup.select("li.tag-type-general > a")
+        tags = self.soup.select("ul#tag-sidebar > li > a")
         tags = (tag.contents[0] for tag in tags if tag.contents[0] != "?")
         return list(tags)
 
