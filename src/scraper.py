@@ -9,7 +9,6 @@ BOORU_URL = "http://gelbooru.com/"
 
 
 class BooruView:
-
     """Class for parsing a view and mining useful data."""
 
     def __init__(self, soup, uid=None):
