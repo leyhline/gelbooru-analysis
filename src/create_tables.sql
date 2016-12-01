@@ -8,13 +8,14 @@ CREATE TABLE view(
 );
 
 CREATE TABLE tag(
-    name TEXT PRIMARY KEY
+    id INTEGER PRIMARY KEY,
+    name TEXT UNIQUE
 );
 
-CREATE TABLE  tagged(
+CREATE TABLE  tagged_with(
     view INTEGER,
-    tag TEXT,
+    tag INTEGER,
     FOREIGN KEY(view) REFERENCES view(id),
-    FOREIGN KEY(tag) REFERENCES tag(name),
+    FOREIGN KEY(tag) REFERENCES tag(id),
     PRIMARY KEY (view, tag)    
 );
