@@ -20,6 +20,7 @@ class BooruView:
         self.tags = self._parse_tags()
         self.url = self._parse_url()
         stats = self._parse_stats()
+        assert len(stats) == 4
         self.uid = self.__maybeIndex("Id", stats)
         if uid:  # Safety check if you are parsing the correct view.
             assert uid == self.uid
