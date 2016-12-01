@@ -1,7 +1,7 @@
 import sqlite3
-import scraper
+import os.path
 
-STANDARD_DB_PATH = "../data/gelbooru.db"
+STANDARD_DB_PATH = os.path.dirname(__file__) + "/../data/gelbooru.db"
 
 
 class BooruDB:
