@@ -161,3 +161,7 @@ class BooruQuery:
         next_pages = (BOORU_URL + page.get("href") for page in pages
                       if not(page.get("alt")) and int(page.contents[0]) > self.last_page)
         return next_pages
+
+    def generate_views(self):
+        """Return a generator for all views resulting from the query."""
+        return (view for list in self for view in list)
