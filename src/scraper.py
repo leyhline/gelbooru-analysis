@@ -1,4 +1,8 @@
 import re
+import logging
+import logging.config
+import yaml
+import urllib.error
 from datetime import datetime
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
@@ -6,7 +10,10 @@ from urllib.parse import urlencode
 from functools import reduce
 
 BOORU_URL = "http://gelbooru.com/"
-
+# Load and configure logging.
+with open("logging.yaml") as f:
+    logging_config = yaml.load(f)
+logging.config.dictConfig(logging_config)
 
 class BooruView:
     """Class for parsing a view and mining useful data."""
@@ -20,16 +27,26 @@ class BooruView:
         self.tags = self._parse_tags()
         self.url = self._parse_url()
         stats = self._parse_stats()
-        assert len(stats) == 4
         self.uid = self.__maybeIndex("Id", stats)
         if uid:  # Safety check if you are parsing the correct view.
-            assert uid == self.uid
+            try:
+                assert uid == self.uid
+            except AssertionError:
+                logging.warning("Assertion of Id failed. " +
+                                "View {} might be corrupted".format(self.uid))
+        try:
+            assert len(stats) == 4
+        except AssertionError:
+            logging.error("Invalid view {}. Missing statistics. Set to None.".format(self.uid))
         self.posted = self.__maybeIndex("Posted", stats)
         self.rating = self.__maybeIndex("Rating", stats)
         sizes = self.__maybeIndex("Size", stats)
         if sizes is not None:
             self.xsize = sizes[0]
             self.ysize = sizes[1]
+        else:
+            self.xsize = 0
+            self.ysize = 0
 
     def __str__(self):
         """Return a string that looks the same as the title of the original site."""
@@ -109,7 +126,12 @@ class BooruList:
 
     def __next__(self):
         """For iterating through the BooruView objects."""
-        return self._views.__next__()
+        try:
+            view = self._views.__next__()
+        except urllib.error.HTTPError as err:
+            logging.error("Retrieving view failed. " + str(err))
+            return None
+        return view
 
     def __str__(self):
         return self.soup.title.contents[0]
@@ -140,10 +162,15 @@ class BooruQuery:
         return self
 
     def __next__(self):
-        if self.last_page == 0:
-            self.last_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
-        else:
-            self.last_soup = BeautifulSoup(urlopen(next(self._get_next_soup())), "html.parser")
+        try:
+            if self.last_page == 0:
+                self.last_soup = BeautifulSoup(urlopen(self.base_url), "html.parser")
+            else:
+                self.last_soup = BeautifulSoup(urlopen(next(self._get_next_soup())), "html.parser")
+        except urllib.error.HTTPError as err:
+            logging.error("Retrieving page {} failed. ".format(self.last_page + 1) + str(err))
+            self.last_page += 1
+            return None
         self.last_page += 1
         return BooruList(self.last_soup)
 
@@ -164,4 +191,4 @@ class BooruQuery:
 
     def generate_views(self):
         """Return a generator for all views resulting from the query."""
-        return (view for list in self for view in list)
+        return (view for list in self if list for view in list if view)
