@@ -1,4 +1,5 @@
 import re
+import os.path
 import logging
 import logging.config
 import yaml
@@ -11,8 +12,9 @@ from urllib.parse import urlencode
 from functools import reduce
 
 BOORU_URL = "http://gelbooru.com/"
+SOURCE_PATH = os.path.dirname(__file__)
 # Load and configure logging.
-with open("logging.yaml") as f:
+with open(SOURCE_PATH + "/logging.yaml") as f:
     logging_config = yaml.load(f)
 logging.config.dictConfig(logging_config)
 log_headline = logging.getLogger("headline")
@@ -96,7 +98,7 @@ class BooruView:
             logging.warning("Current view has no score. Setting 0.")
             statdict["Score"] = 0
         except ValueError as err:
-            logging.warning("Parsing score of view failed. Setting 0. " + err)
+            logging.warning("Parsing score of view failed. Setting 0. " + str(err))
             statdict["Score"] = 0
         return statdict
 
@@ -126,7 +128,7 @@ class BooruView:
             try:
                 dict_entry = (key, (int(sizes[0]), int(sizes[1])))
             except ValueError as err:
-                logging.warning("Parsing size of view failed. Setting 0. " + err)
+                logging.warning("Parsing size of view failed. Setting 0. " + str(err))
                 dict_entry = (key, (0, 0))                
         elif key == "Rating":
             dict_entry = (key, value[8:])
