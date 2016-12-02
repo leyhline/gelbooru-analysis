@@ -1,0 +1,6 @@
+# Settings for retrieving data, most importantly tags.
+version: 1
+tags: [solo, -comic, -4koma, -animated, -sound, -webm, -animated gif, -asian, -photo, -3d]
+minimum: 0
+maximum: 1000
+stepsize: 100
