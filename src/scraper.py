@@ -14,6 +14,7 @@ BOORU_URL = "http://gelbooru.com/"
 with open("logging.yaml") as f:
     logging_config = yaml.load(f)
 logging.config.dictConfig(logging_config)
+log_headline = logging.getLogger("headline")
 
 class BooruView:
     """Class for parsing a view and mining useful data."""
@@ -47,6 +48,7 @@ class BooruView:
         else:
             self.xsize = 0
             self.ysize = 0
+        logging.info("View {} constructed.".format(self.uid))
 
     def __str__(self):
         """Return a string that looks the same as the title of the original site."""
@@ -119,6 +121,7 @@ class BooruList:
         soups = zip((BeautifulSoup(urlopen(BOORU_URL + url), "html.parser") for url in urls), uids)
         # Create a list with views; soup[1] contains id for asserting correctness.
         self._views = (BooruView(soup[0], soup[1]) for soup in soups)
+        logging.info("List constructed.")
 
     def __iter__(self):
         """For iterating through the BooruView objects."""
@@ -126,6 +129,7 @@ class BooruList:
 
     def __next__(self):
         """For iterating through the BooruView objects."""
+        print("1+1=2")
         try:
             view = self._views.__next__()
         except urllib.error.HTTPError as err:
@@ -155,6 +159,7 @@ class BooruQuery:
         """Constructor: Takes a list of all the tags you want to query for."""
         self.tags = tags
         self.base_url = self._create_url()
+        log_headline.info("Query constructed with tags: " + str(self))
 
     def __iter__(self):
         self.last_page = 0
@@ -173,6 +178,10 @@ class BooruQuery:
             return None
         self.last_page += 1
         return BooruList(self.last_soup)
+        
+    def __str__(self):
+        """Return a string that looks the same as the title of the original site."""
+        return reduce(lambda s1, s2: s1 + ", " + s2, self.tags)
 
     def _create_url(self):
         get_args = {"page": "post", "s": "list"}
