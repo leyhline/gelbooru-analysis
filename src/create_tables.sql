@@ -2,9 +2,9 @@ CREATE TABLE view(
     id INTEGER PRIMARY KEY,
     posted TEXT,
     score INTEGER,
-    url TEXT,
     xsize INTEGER,
-    ysize INTEGER
+    ysize INTEGER,
+    url TEXT
 ) WITHOUT ROWID;
 
 CREATE TABLE tag(
