@@ -25,7 +25,8 @@ class BooruView:
         If uid is given, assert if parsed id is equal.
         """
         self.soup = soup
-        self.tags = self._parse_tags()
+        self.tagtuple = self._parse_tags()
+        self.tags = list(zip(*self.tagtuple))[0]
         self.url = self._parse_url()
         stats = self._parse_stats()
         self.uid = self.__maybeIndex("Id", stats)
@@ -55,10 +56,11 @@ class BooruView:
         return self.soup.title.contents[0]
 
     def _parse_tags(self):
-        """Return all tags of the view."""
-        tags = self.soup.select("ul#tag-sidebar > li > a")
-        tags = (tag.contents[0] for tag in tags if tag.contents[0] != "?")
-        return list(tags)
+        """Return a tuple (tag, type) for all tags and their corresponding type."""
+        tag_soup = self.soup.select("ul#tag-sidebar > li")
+        types = (tag.get("class")[0][9:] for tag in tag_soup)
+        tags = (tag.select("a")[1].contents[0] for tag in tag_soup)
+        return list(zip(tags, types))
 
     def _parse_stats(self):
         """Return the statistics of the view."""
