@@ -6,9 +6,9 @@ Step 1: Data aquisition
 --------------
 Parse [Gelbooru](http://gelbooru.com/) (NSFW).
 1. Write textual results into SQLite Database.
-    * Site Scraper (finished)
-    * Database interface (finished)
-    * Logging system for debugging runtime errors
+    * Site Scraper *(finished)*
+    * Database interface *(finished)*
+    * Logging system for debugging runtime errors *(finished)*
 2. Data analysis: Find promising labels/tags, sizes and other useful attributes.
 3. Download appropriate images.
 4. (Optional) Preprocessing of images. (Greyscale, Crop, Resizing)
