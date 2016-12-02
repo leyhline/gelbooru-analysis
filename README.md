@@ -31,3 +31,7 @@ Dependencies
 --------------
 1. Data aquisition
     * beautifulsoup4
+    * PyYAML
+2. Data analysis
+    * jupyter
+    * matplotlib
