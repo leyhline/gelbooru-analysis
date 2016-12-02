@@ -16,7 +16,7 @@ handlers:
         class: logging.FileHandler
         level: DEBUG
         formatter: simple
-        filename: scraper.log
+        filename: retrieve.log
     headline:
         class: logging.FileHandler
         level: INFO

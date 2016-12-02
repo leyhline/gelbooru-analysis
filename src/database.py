@@ -4,9 +4,10 @@ import logging
 import logging.config
 import yaml
 
-STANDARD_DB_PATH = os.path.dirname(__file__) + "/../data/gelbooru.db"
+SOURCE_PATH = os.path.dirname(__file__)
+STANDARD_DB_PATH = SOURCE_PATH + "/../data/gelbooru.db"
 # Load and configure logging.
-with open("logging.yaml") as f:
+with open(SOURCE_PATH + "/logging.yaml") as f:
     logging_config = yaml.load(f)
 logging.config.dictConfig(logging_config)
 
