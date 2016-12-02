@@ -1,5 +1,8 @@
 import sqlite3
 import os.path
+import logging
+import logging.config
+import yaml
 
 STANDARD_DB_PATH = os.path.dirname(__file__) + "/../data/gelbooru.db"
 # Load and configure logging.
@@ -38,5 +41,6 @@ class BooruDB:
                                   "SELECT ?, id FROM tag WHERE name = ?", val_tagged)
             self._con.commit()
         except Exception as err:
-            logging.critical("Aborting because of unhandled exception: " + err + type(err))
+            logging.critical("Aborting because of unhandled exception: " +
+                              str(err) + " " + str(type(err)))
             raise err
