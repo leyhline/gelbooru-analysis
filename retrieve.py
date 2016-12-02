@@ -31,12 +31,21 @@ DESCRIPTION
 
     You can specifiy the step size (here: 10,000) with -s
     and the maximum (here: 3,000,000) with -mx.
+
+OPTIONS
+    TODO
 """
+
+import yaml
+import src.scraper
+import src.database
 
 # Default values for splitting queries into ranges of id's.
 MINIMUM = 0
 MAXIMUM = 3000000
 STEPSIZE = 20000
+# Default file for loading configurations from.
+CONFIG_FILE = "retrieve.yaml"
 
 
 def range_of_ids(start=MINIMUM, stop=MAXIMUM, step=STEPSIZE):
@@ -45,6 +54,22 @@ def range_of_ids(start=MINIMUM, stop=MAXIMUM, step=STEPSIZE):
     return zip(greater_than, lesser_than)
 
 
+def file_config(filename=CONFIG_FILE):
+    with open(filename) as f:
+        config = yaml.load(f)
+    return config
+
+
 if __name__ == "__main__":
-    for tup in range_of_ids():
-        print(tup)
+    config = file_config()
+    tags = config["tags"]
+    id_ranges = range_of_ids(config["minimum"], config["maximum"], config["stepsize"])
+    for idr in id_ranges:
+        range_tags = ["id:>=" + str(idr[0]), "id:<" + str(idr[1])]
+        tags.extend(range_tags)
+        bquery = src.scraper.BooruQuery(tags)
+        bviews = bquery.generate_views()
+        with src.database.BooruDB() as db:
+            for bview in bviews:
+                db.insert_view(bview)
+                print(bview.uid, "inserted.")
