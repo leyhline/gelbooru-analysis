@@ -28,7 +28,7 @@ class BooruDB:
     def insert_view(self, booru_view):
         try:
             """Extracts data from BooruView object and writes it into database."""
-            val_view = (booru_view.uid, booru_view.posted.isoformat(), booru_view.rating,
+            val_view = (booru_view.uid, booru_view.posted, booru_view.rating,
                         booru_view.url, booru_view.xsize, booru_view.ysize)
             self._cur.execute("INSERT OR REPLACE INTO view VALUES (?,?,?,?,?,?)", val_view)
             val_tag = ((tag,) for tag in booru_view.tags)
