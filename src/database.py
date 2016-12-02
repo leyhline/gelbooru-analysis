@@ -21,6 +21,13 @@ class BooruDB:
         """Method for using "with" statement."""
         self._con = sqlite3.connect(self.db_path)
         self._cur = self._con.cursor()
+        # Activate foreign key support.
+        foreign_key_support = self._foreign_key_support()
+        try:
+            assert foreign_key_support == True
+        except AssertionError:
+            logging.warning("Your run-time SQLite library does not support foreign keys. " + 
+                            "Proceed with caution. (Version {})".format(sqlite3.sqlite_version))
         return self
 
     def __exit__(self, exc_type, exc_value, exc_tb):
@@ -28,14 +35,28 @@ class BooruDB:
         self._cur.close()
         self._con.close()
 
+    def _foreign_key_support(self):
+        """Activate and test foreign key support. Return True if supported."""
+        self._cur.execute("PRAGMA foreign_keys = ON")
+        self._cur.execute("PRAGMA foreign_keys")
+        supported = self._cur.fetchone()
+        if supported == 1:
+            return True
+        else:
+            return False
+
     def insert_view(self, booru_view):
+        """Extracts data from BooruView object and writes it into database."""
         try:
-            """Extracts data from BooruView object and writes it into database."""
-            val_view = (booru_view.uid, booru_view.posted, booru_view.rating,
-                        booru_view.url, booru_view.xsize, booru_view.ysize)
+            val_view = (booru_view.uid, booru_view.posted, booru_view.score,
+                        booru_view.xsize, booru_view.ysize, booru_view.url)
             self._cur.execute("INSERT OR REPLACE INTO view VALUES (?,?,?,?,?,?)", val_view)
             val_tag = ((tag,) for tag in booru_view.tags)
             self._cur.executemany("INSERT OR IGNORE INTO tag(name) VALUES (?)", val_tag)
+            
+            
+            
+            
             val_tagged = ((booru_view.uid, tag) for tag in booru_view.tags)
             self._cur.executemany("INSERT OR IGNORE INTO tagged_with " +
                                   "SELECT ?, id FROM tag WHERE name = ?", val_tagged)
