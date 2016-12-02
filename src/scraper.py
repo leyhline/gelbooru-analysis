@@ -5,6 +5,7 @@ import yaml
 import urllib.error
 from datetime import datetime
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 from urllib.request import urlopen
 from urllib.parse import urlencode
 from functools import reduce
@@ -29,6 +30,10 @@ class BooruView:
         self.tags = list(zip(*self.tagtuple))[0]
         self.url = self._parse_url()
         stats = self._parse_stats()
+        try:
+            assert len(stats) == 6
+        except AssertionError:
+            logging.warning("View is missing some statistics and might be corrupted.")
         self.uid = self.__maybeIndex("Id", stats)
         if uid:  # Safety check if you are parsing the correct view.
             try:
@@ -36,12 +41,10 @@ class BooruView:
             except AssertionError:
                 logging.warning("Assertion of Id failed. " +
                                 "View {} might be corrupted".format(self.uid))
-        try:
-            assert len(stats) == 4
-        except AssertionError:
-            logging.error("Invalid view {}. Missing statistics. Set to None.".format(self.uid))
         self.posted = self.__maybeIndex("Posted", stats)
         self.rating = self.__maybeIndex("Rating", stats)
+        self.poster = self.__maybeIndex("Poster", stats)
+        self.score = int(self.__maybeIndex("Score", stats))
         sizes = self.__maybeIndex("Size", stats)
         if sizes is not None:
             self.xsize = sizes[0]
@@ -65,9 +68,12 @@ class BooruView:
     def _parse_stats(self):
         """Return the statistics of the view."""
         stats = self.soup.select("div.sidebar3 > div#stats > ul > li")
-        stats = (line.contents for line in stats)
+        stats_contents = (line.contents for line in stats)
         # Flatten stats. (list of list of strings -> list of strings)
-        stats = (item for sublist in stats for item in sublist if isinstance(item, str))
+        stats_contents = [item for sublist in stats_contents for item in sublist]
+        # The following lines are for parsing Id, Posted, Size and Rating
+        ##################################################################
+        stats = (item for item in stats_contents if isinstance(item, str))
         regex = re.compile(r"""\w+(?=:)""")  # Check if "BLAH:", match only BLAH
         # Match fitting lines in statistics element.
         matches = ((regex.match(entry), entry) for entry in stats if entry)
@@ -75,6 +81,23 @@ class BooruView:
         # Write relevant statistics into a new dictionary which is to be returned at the end.
         statdict = dict((self.__create_dict_entry(match) for match in matches
                          if self.__create_dict_entry(match)))
+        # The following lines are for parsing Score and Poster
+        ##################################################################
+        stats = (item.contents[0] for item in stats_contents
+                 if isinstance(item, Tag) and item.contents)
+        try:
+            statdict["Poster"] = next(stats)
+        except StopIteration:
+            logging.warning("Current view has no poster. Setting None.")
+            statdict["Poster"] = None
+        try:
+            statdict["Score"] = int(next(stats))
+        except StopIteration:
+            logging.warning("Current view has no score. Setting 0.")
+            statdict["Score"] = 0
+        except ValueError as err:
+            logging.warning("Parsing score of view failed. Setting 0. " + err)
+            statdict["Score"] = 0
         return statdict
 
     def _parse_url(self):
@@ -100,7 +123,11 @@ class BooruView:
             dict_entry = (key, obj_datetime)
         elif key == "Size":
             sizes = value[6:].split("x")
-            dict_entry = (key, (sizes[0], sizes[1]))
+            try:
+                dict_entry = (key, (int(sizes[0]), int(sizes[1])))
+            except ValueError as err:
+                logging.warning("Parsing size of view failed. Setting 0. " + err)
+                dict_entry = (key, (0, 0))                
         elif key == "Rating":
             dict_entry = (key, value[8:])
         else:
