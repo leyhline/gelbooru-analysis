@@ -78,13 +78,14 @@ class BooruDB:
                                   "SELECT tag.id, tag_type.id FROM tag, tag_type " +
                                   "WHERE tag.name = ? and tag_type.name = ?", val_categorizes)
             # Table for assigning a poster to his/her view.
-            val_posts = (booru_view.poster, booru_view.uid)
-            self._cur.execute("INSERT OR REPLACE INTO posts " +
+            val_posts = (booru_view.uid, booru_view.poster)
+            self._cur.execute("INSERT OR IGNORE INTO posts " +
                               "SELECT id, ? FROM poster WHERE name = ?", val_posts)
             # Table for assigning a rating to a view.
             val_rates = (booru_view.uid, booru_view.rating)
-            self._cur.execute("INSERT OR REPLACE INTO rates " +
+            self._cur.execute("INSERT OR IGNORE INTO rates " +
                               "SELECT ?, id FROM rating WHERE name = ?", val_rates)
+            # Commit changes! (almost forgot this one)
             self._con.commit()
         except Exception as err:
             logging.critical("Aborting because of unhandled exception: " +

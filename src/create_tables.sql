@@ -28,25 +28,25 @@ CREATE TABLE poster(
 );
 
 CREATE TABLE tags(
-    view INTEGER REFERENCES view(id) ON DELETE CASCADE,
-    tag INTEGER REFERENCES tag(id) ON DELETE CASCADE,
+    view INTEGER REFERENCES view(id),
+    tag INTEGER REFERENCES tag(id),
     PRIMARY KEY (view, tag)
 );
 
 CREATE TABLE categorizes(
-    tag INTEGER REFERENCES tag(id) ON DELETE CASCADE,
+    tag INTEGER REFERENCES tag(id),
     tag_type INTEGER REFERENCES tag_type(id),
     PRIMARY KEY (tag, tag_type)
 );
 
 CREATE TABLE posts(
     poster INTEGER REFERENCES poster(id),
-    view INTEGER REFERENCES view(id) ON DELETE CASCADE,
+    view INTEGER REFERENCES view(id),
     PRIMARY KEY (poster, view)
 );
 
 CREATE TABLE rates(
-    view INTEGER REFERENCES view(id) ON DELETE CASCADE,
+    view INTEGER REFERENCES view(id),
     rating INTEGER REFERENCES rating(id),
     PRIMARY KEY (view, rating)
 );
