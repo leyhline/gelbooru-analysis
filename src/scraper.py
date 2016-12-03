@@ -160,7 +160,10 @@ class BooruList:
             # Create a list with views; soup[1] contains id for asserting correctness.
             self._views = (BooruView(soup[0], soup[1]) for soup in soups)
         except AssertionError:
-            logging.warning("Empty list. Returning empty iterable.")
+            err_message = self.soup.select("div#post-list > div.content > div > h1")
+            if err_message:
+                err_message = err_message[0].contents[0]
+            logging.warning("Empty list. Returning empty iterable. " + err_message)
             self._views = ()
         logging.info("List constructed.")
 
