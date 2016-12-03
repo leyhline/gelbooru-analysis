@@ -93,7 +93,11 @@ class BooruView:
             logging.warning("Current view has no poster. Setting None.")
             statdict["Poster"] = None
         try:
-            statdict["Score"] = int(next(stats))
+            statdict["Score"] = 0
+            for entry in stats:
+                if entry.isdigit():
+                    statdict["Score"] = int(entry)
+                    break;
         except StopIteration:
             logging.warning("Current view has no score. Setting 0.")
             statdict["Score"] = 0
@@ -148,10 +152,16 @@ class BooruList:
         """Constructor: Takes a soup object of the results page."""
         self.soup = soup
         parsed_views = self._parse_links()
-        uids, urls = zip(*parsed_views)  # Unzip for better readability (Haha...)
-        soups = zip((BeautifulSoup(urlopen(BOORU_URL + url), "html.parser") for url in urls), uids)
-        # Create a list with views; soup[1] contains id for asserting correctness.
-        self._views = (BooruView(soup[0], soup[1]) for soup in soups)
+        try:
+            assert parsed_views
+            uids, urls = zip(*parsed_views)  # Unzip for better readability (Haha...)
+            soups = zip((BeautifulSoup(urlopen(BOORU_URL + url), "html.parser")
+                         for url in urls), uids)
+            # Create a list with views; soup[1] contains id for asserting correctness.
+            self._views = (BooruView(soup[0], soup[1]) for soup in soups)
+        except AssertionError:
+            logging.warning("Empty list. Returning empty iterable.")
+            self._views = ()
         logging.info("List constructed.")
 
     def __iter__(self):
@@ -160,7 +170,6 @@ class BooruList:
 
     def __next__(self):
         """For iterating through the BooruView objects."""
-        print("1+1=2")
         try:
             view = self._views.__next__()
         except urllib.error.HTTPError as err:
@@ -190,7 +199,9 @@ class BooruQuery:
         """Constructor: Takes a list of all the tags you want to query for."""
         self.tags = tags
         self.base_url = self._create_url()
-        log_headline.info("Query constructed with tags: " + str(self))
+        log_headline.info("Query constructed with tags: " +
+                          reduce(lambda s1, s2: s1 + " " + s2,
+                                 (string.replace(" ", "_") for string in str(self).split(", "))))
 
     def __iter__(self):
         self.last_page = 0
