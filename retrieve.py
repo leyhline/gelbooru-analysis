@@ -66,7 +66,7 @@ def print_status(uid, counter, last_printed, program_start_time=0, seconds_until
     if time.monotonic() - last_printed >= seconds_until_flush:
         message = "Last inserted view: {} - Total operations: {}".format(uid, counter)
         if program_start_time:
-            message += " - Running since {} seconds.".format(int(time.monotinic() -
+            message += " - Running since {} seconds.".format(int(time.monotonic() -
                                                                  program_start_time))
         sys.stdout.write(message)
         sys.stdout.flush()
@@ -83,13 +83,20 @@ if __name__ == "__main__":
     counter = 0
     last_printed = 0
     start_time = time.monotonic()
-    for idr in id_ranges:
-        range_tags = ["id:>=" + str(idr[0]), "id:<" + str(idr[1])]
-        range_tags.extend(tags)
-        bquery = src.scraper.BooruQuery(range_tags)
-        bviews = bquery.generate_views()
-        with src.database.BooruDB() as db:
-            for bview in bviews:
+    with src.database.BooruDB() as db:  # Open database connection.
+        print("Opened database connection: " + db.db_path)
+        for idr in id_ranges:
+            range_tags = ["id:>=" + str(idr[0]), "id:<" + str(idr[1])]
+            range_tags.extend(tags)
+            # Query gelbooru with respective tags for id range specified in idr.
+            bquery = src.scraper.BooruQuery(range_tags)
+            bviews = bquery.generate_views()
+            for bview in bviews:  # Insert every resulting view into database.
                 db.insert_view(bview)
                 counter += 1
                 last_printed = print_status(bview.uid, counter, last_printed, start_time)
+    sys.stdout.write("\n")
+    print("Database connection properly closed. {} views retrieved.".format(counter))
+    total_time = int(time.monotonic() - start_time)
+    print("Total time: {} hours, {} seconds".format(total_time // 60, total_time % 60))
+    

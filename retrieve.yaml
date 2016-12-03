@@ -2,5 +2,5 @@
 version: 1
 tags: [solo, 1girl, -comic, -4koma, -animated, -sound, -webm, -animated gif, -asian, -photo, -3d]
 minimum: 0
-maximum: 500
-stepsize: 100
+maximum: 100000
+stepsize: 10000
