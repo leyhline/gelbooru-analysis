@@ -33,7 +33,7 @@ DESCRIPTION
     and the maximum (here: 3,000,000) with -mx.
 
 OPTIONS
-    TODO
+    TODO atm configuration is only possible per retrieve.yaml config file.
 """
 
 import yaml
@@ -64,12 +64,15 @@ if __name__ == "__main__":
     config = file_config()
     tags = config["tags"]
     id_ranges = range_of_ids(config["minimum"], config["maximum"], config["stepsize"])
+    counter = 0
     for idr in id_ranges:
         range_tags = ["id:>=" + str(idr[0]), "id:<" + str(idr[1])]
-        tags.extend(range_tags)
-        bquery = src.scraper.BooruQuery(tags)
+        range_tags.extend(tags)
+        bquery = src.scraper.BooruQuery(range_tags)
         bviews = bquery.generate_views()
         with src.database.BooruDB() as db:
             for bview in bviews:
                 db.insert_view(bview)
-                print(bview.uid, "inserted.")
+                counter += 1
+                # TODO Better output. Do not print every view. Thats stupid.
+                print(bview.uid, "inserted. Total operations:", counter)
