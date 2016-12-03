@@ -39,6 +39,7 @@ OPTIONS
 import yaml
 import src.scraper
 import src.database
+import sys
 
 # Default values for splitting queries into ranges of id's.
 MINIMUM = 0
@@ -60,11 +61,22 @@ def file_config(filename=CONFIG_FILE):
     return config
 
 
+def print_status(uid, counter, last_printed, seconds_until_flush=1):
+    if time.monotonic() - last_printed >= seconds_until_flush:
+        sys.stdout.write("{} inserted. Total operations: {}".format(uid, counter))
+        sys.stdout.flush()
+        sys.stdout.write("\r")
+        return time.monotonic()
+    else:
+        return last_printed
+
+
 if __name__ == "__main__":
     config = file_config()
     tags = config["tags"]
     id_ranges = range_of_ids(config["minimum"], config["maximum"], config["stepsize"])
     counter = 0
+    last_printed = 0
     for idr in id_ranges:
         range_tags = ["id:>=" + str(idr[0]), "id:<" + str(idr[1])]
         range_tags.extend(tags)
@@ -74,5 +86,4 @@ if __name__ == "__main__":
             for bview in bviews:
                 db.insert_view(bview)
                 counter += 1
-                # TODO Better output. Do not print every view. Thats stupid.
-                print(bview.uid, "inserted. Total operations:", counter)
+                last_printed = print_status(bview.uid, counter, last_printed)
