@@ -110,7 +110,13 @@ class BooruView:
         """Return the URL of the original image."""
         urls = self.soup.select("div.sidebar3 > div > ul > li > a")
         # Get tag containing the URL of the original image.
-        return [url.attrs["href"] for url in urls if url.contents[0] == "Original image"][0]
+        url = [url.get("href") for url in urls
+               if url.contents and url.contents[0] == "Original image"]
+        try:
+            return url[0]
+        except IndexError:
+            logging.warning("No url for original image found. Returning None.")
+            return None
 
     def __maybeIndex(self, key, dictionary):
         if key in dictionary:
