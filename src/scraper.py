@@ -227,6 +227,8 @@ class BooruQuery:
             logging.error("Retrieving page {} failed. ".format(self.last_page + 1) + str(err))
             self.last_page += 1
             return None
+        except StopIteration:
+            raise
         except Exception as err:
             logging.critical("Aborting because of unhandled exception: " +
                               str(err) + " " + str(type(err)))
