@@ -29,7 +29,13 @@ class BooruView:
         """
         self.soup = soup
         self.tagtuple = self._parse_tags()
-        self.tags = list(zip(*self.tagtuple))[0]
+        try:
+            self.tags = list(zip(*self.tagtuple))[0]
+        except IndexError:
+            logging.error("Parsing tags failed. Returning empty tuple. " +
+                          "You should try to get this view later " +
+                          "because an image without tags is useless.")
+            self.tags = ()
         self.url = self._parse_url()
         stats = self._parse_stats()
         try:
@@ -227,12 +233,6 @@ class BooruQuery:
             logging.error("Retrieving page {} failed. ".format(self.last_page + 1) + str(err))
             self.last_page += 1
             return None
-        except StopIteration:
-            raise
-        except Exception as err:
-            logging.critical("Aborting because of unhandled exception: " +
-                              str(err) + " " + str(type(err)))
-            raise err
         self.last_page += 1
         return BooruList(self.last_soup)
         
