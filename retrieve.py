@@ -53,7 +53,12 @@ CONFIG_FILE = "retrieve.yaml"
 def range_of_ids(start=MINIMUM, stop=MAXIMUM, step=STEPSIZE):
     greater_than = range(start, stop - step + 1, step)
     lesser_than  = range(start + step, stop + 1, step)
-    return zip(greater_than, lesser_than)
+    ranges = list(zip(greater_than, lesser_than))
+    offset = (stop - start) % step
+    # Make sure to really stop where you specified without an offset.
+    if offset:
+        ranges.append((stop - offset, stop))
+    return ranges
 
 
 def file_config(filename=CONFIG_FILE):
