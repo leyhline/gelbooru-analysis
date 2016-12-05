@@ -10,6 +10,7 @@ STANDARD_DB_PATH = SOURCE_PATH + "/../data/gelbooru.db"
 with open(SOURCE_PATH + "/logging.yaml") as f:
     logging_config = yaml.load(f)
 logging.config.dictConfig(logging_config)
+log_errordump = logging.getLogger("dump")
 
 class BooruDB:
     """Class for accesing a SQLite database. Use per "with" statement."""
@@ -89,10 +90,12 @@ class BooruDB:
             self._con.commit()
         except sqlite3.IntegrityError as err:
             logging.error("Database insertion failed: " + str(err))
+            log_errordump.error(booru_view.soup.prettify())
             return
         except Exception as err:
             logging.critical("Aborting because of unhandled exception: " +
                               str(err) + " " + str(type(err)))
+            log_errordump.critical(booru_view.soup.prettify())
             raise err
         finally:
             logging.info("Inserting view {} into database.".format(booru_view.uid))

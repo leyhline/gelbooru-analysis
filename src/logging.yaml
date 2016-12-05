@@ -6,6 +6,8 @@ formatters:
         format: '[%(levelname)s] %(module)s: %(message)s'
     line:
         format: '--------------------------------------------------------------------------------'
+    dump:
+        format: '%(asctime)s - %(levelname)s\n%(message)s'
 handlers:
     console:
         class: logging.StreamHandler
@@ -22,10 +24,18 @@ handlers:
         level: INFO
         formatter: line
         filename: retrieve.log
+    dump:
+        class: logging.FileHandler
+        level: ERROR
+        formatter: dump
+        filename: dumphtml.log
 loggers:
     headline:
         level: INFO
         handlers: [headline]
+    dump:
+        level: ERROR
+        handlers: [dump]
 root:
   level: DEBUG
   handlers: [console, file]
