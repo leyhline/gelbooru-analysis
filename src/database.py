@@ -87,6 +87,9 @@ class BooruDB:
                               "SELECT ?, id FROM rating WHERE name = ?", val_rates)
             # Commit changes! (almost forgot this one)
             self._con.commit()
+        except sqlite3.IntegrityError as err:
+            logging.error("Database insertion failed: " + str(err))
+            return
         except Exception as err:
             logging.critical("Aborting because of unhandled exception: " +
                               str(err) + " " + str(type(err)))
