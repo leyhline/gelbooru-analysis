@@ -102,6 +102,3 @@ if __name__ == "__main__":
                 last_printed = print_status(bview.uid, counter, last_printed, start_time)
     sys.stdout.write("\n")
     print("Database connection properly closed. {} views retrieved.".format(counter))
-    total_time = int(time.monotonic() - start_time)
-    print("Total time: {} hours, {} seconds".format(total_time // 60, total_time % 60))
-    
