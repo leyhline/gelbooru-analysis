@@ -33,7 +33,14 @@ DESCRIPTION
     and the maximum (here: 3,000,000) with -mx.
 
 OPTIONS
-    TODO atm configuration is only possible per retrieve.yaml config file.
+    -mn
+            the minimum Id for specifying the Id range
+    
+    -mx
+            the maximum Id for specifying the Id range
+    
+    -s
+            step size for stepping through Id range
 """
 
 import yaml
@@ -84,7 +91,18 @@ def print_status(uid, counter, last_printed, program_start_time=0, seconds_until
 if __name__ == "__main__":
     config = file_config()
     tags = config["tags"]
-    id_ranges = range_of_ids(config["minimum"], config["maximum"], config["stepsize"])
+    minimum = config["minimum"]
+    maximum = config["maximum"]
+    stepsize = config["stepsize"]
+    # Check if arguments are given and override configuration.
+    for i in range(1, len(sys.argv)):
+        if sys.argv[i] == "-mn":
+            minimum = int(sys.argv[i + 1])
+        elif sys.argv[i] == "-mx":
+            maximum = int(sys.argv[i + 1])
+        elif sys.argv[i] == "-s":
+            stepsize = int(sys.argv[i + 1])
+    id_ranges = range_of_ids(minimum, maximum, stepsize)
     counter = 0
     last_printed = 0
     start_time = time.monotonic()
