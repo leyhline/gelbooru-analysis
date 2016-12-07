@@ -35,3 +35,8 @@ Dependencies
 2. Data analysis
     * jupyter
     * matplotlib
+
+Inspiration
+--------------
+* http://mattya.github.io/chainer-DCGAN/ (source of repo image)
+* http://waifu2x.udp.jp/
