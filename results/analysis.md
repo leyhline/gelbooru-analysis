@@ -48,7 +48,9 @@ tag_count = cur.fetchone()[0]
 ```python
 print("Id of first post: {} (from {})".format(first_entry[0], first_entry[1]))
 print("Id of last post: {} (from {})".format(last_entry[0], last_entry[1]))
-timedelta = datetime.strptime(last_entry[1], timeformat) - datetime.strptime(first_entry[1], timeformat)
+first_post_datetime = datetime.strptime(first_entry[1], timeformat)
+last_post_datetime = datetime.strptime(last_entry[1], timeformat)
+timedelta = last_post_datetime - first_post_datetime
 print("Total count: {} (spanning {} days)".format(total_count, timedelta.days))
 print("Number of tags: {}".format(tag_count))
 ```
@@ -79,33 +81,66 @@ plt.show()
 ![png](output_10_0.png)
 
 
+# Time series
+
+Watch the data for every full month since the beginning. At the moment this is from Aug 2007 to Mar 2016.
+
 
 ```python
-id_list = []
-for year in range(2007, 2016 + 1):
-    year = format(year, "04")
-    for month in range(1, 12 + 1):
-        month = format(month, "02")
-        cur.execute("SELECT id, SUBSTR(posted, 1, 4),  SUBSTR(posted, 6, 2) FROM view " +
-                    "WHERE SUBSTR(posted, 1, 4) = ? AND  SUBSTR(posted, 6, 2) = ?" +
-                    "ORDER BY id ASC LIMIT 1", (year, month))
-        first_id = cur.fetchone()
-        cur.execute("SELECT id, SUBSTR(posted, 1, 4),  SUBSTR(posted, 6, 2) FROM view " +
-                    "WHERE SUBSTR(posted, 1, 4) = ? AND  SUBSTR(posted, 6, 2) = ?" +
-                    "ORDER BY id DESC LIMIT 1", (year, month))
-        last_id = cur.fetchone()
-        if first_id and last_id:
-            id_list.append((first_id[0], last_id[0]))
+total_months = (last_post_datetime.year - first_post_datetime.year - 1) * 12
+total_months += last_post_datetime.month + (12 - first_post_datetime.month) + 1
+first_id_of_month = np.empty(total_months, dtype=int)
+year = 0
+month = 0
+index = 0
+# Get the first id of each month.
+for row in cur.execute("SELECT id, posted FROM view ORDER BY id ASC"):
+    date = datetime.strptime(row[1], timeformat)
+    if date.year > year:
+        year = date.year
+        month = 0
+    if date.month > month:
+        month = date.month
+        first_id_of_month[index] = row[0]
+        index += 1
 ```
 
 
 ```python
-plt.plot([x[1] - x[0] for x in id_list][1:-1])
+# Count the number of uploads.
+id_range = list(zip(first_id_of_month[0:-1], first_id_of_month[1:]))
+count_per_month = []
+for i in range(0, total_months - 1):
+    ids = tuple((str(id) for id in id_range[i]))
+    cur.execute("SELECT COUNT(*) FROM view WHERE id >= ? AND id < ?", ids)
+    count_per_month.append(cur.fetchone())
+```
+
+
+```python
+# Count only safe uploads (no nudes etc.)
+id_range = list(zip(first_id_of_month[0:-1], first_id_of_month[1:]))
+count_per_month_safe = []
+for i in range(0, total_months - 1):
+    ids = tuple((str(id) for id in id_range[i]))
+    cur.execute("SELECT COUNT(*) FROM view JOIN rates ON view.id = rates.view " +
+                "WHERE view.id >= ? AND view.id < ? AND rates.rating = 1", ids)
+    count_per_month_safe.append(cur.fetchone())
+```
+
+
+```python
+plt.figure(figsize=(8,4))
+plt.plot(count_per_month[1:-1], label="Total uploads")
+plt.plot(count_per_month_safe[1:-1], label="Only safe uploads", color="cyan")
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+plt.xlabel("Month")
+plt.ylabel("Uploads")
 plt.show()
 ```
 
 
-![png](output_12_0.png)
+![png](output_16_0.png)
 
 
 # Tag analysis
@@ -117,7 +152,7 @@ Goal: Find appropriate tags for automatic tagging with neural network.
 cur.execute("SELECT tag_count.name, tag_count.count, tag_type.name " +
             "FROM tag_count JOIN categorizes ON tag_count.id = categorizes.tag " +
             "JOIN tag_type ON tag_type.id = categorizes.tag_type " +
-            "WHERE count > 10000 ORDER BY count DESC")
+            "WHERE count > 20000 ORDER BY count DESC")
 top_tags = cur.fetchall()
 ```
 
@@ -338,171 +373,7 @@ print("IN TOTAL:", len(top_tags), "TAGS")
     general                                  armor -  20201
     general                               bracelet -  20174
     general                      multicolored hair -  20142
-    general                                  bound -  19968
-    general                                  apron -  19807
-    general                              dark skin -  19653
-    general                                bondage -  19537
-    general                            wrist cuffs -  19466
-    general                         medium breasts -  19458
-    general                                    bag -  19278
-    general                                   maid -  19243
-    general                           magical girl -  19180
-    general                               sideboob -  19171
-    general                           torn clothes -  19134
-    general                        personification -  19054
-    general                           wide sleeves -  18774
-    general                     one-piece swimsuit -  18567
-    general                            see-through -  18541
-    general                            dutch angle -  18496
-    general                             sleeveless -  18237
-    general                                    gun -  18016
-    general                             pubic hair -  18016
-    general                             shiny skin -  17809
-    general                                 petals -  17683
-    general                                   book -  17515
-    general                             headphones -  17441
-    general                            hand on hip -  17373
-    general                              kneehighs -  17206
-    general                     matching hair/eyes -  17167
-    general                                  ascot -  16999
-    general                                  plaid -  16819
-    general                             skirt lift -  16657
-    general                                 pillow -  16640
-    copyright          idolmaster cinderella girls -  16472
-    copyright           mahou shoujo madoka magica -  16176
-    general                        striped panties -  16168
-    general                                   grin -  16167
-    general                        striped legwear -  15964
-    general                                indoors -  15931
-    general                                  fruit -  15765
-    general                      traditional media -  15728
-    general                               bodysuit -  15549
-    general                                 wariza -  15520
-    general                                   face -  15366
-    general                                   vest -  15348
-    general                             mouth hold -  15277
-    general                                 makeup -  15259
-    general                              sidelocks -  15259
-    general                          black panties -  15251
-    general                                   tree -  15218
-    general                      hair between eyes -  15141
-    artist                          artist request -  14986
-    copyright                              precure -  14905
-    general                             undressing -  14856
-    general                             shirt lift -  14753
-    general                            thigh boots -  14727
-    general                                sweater -  14588
-    general                            artist name -  14572
-    general                                 chains -  14520
-    general                                   moon -  14510
-    general                           black gloves -  14414
-    copyright                        fate (series) -  14414
-    general                         maid headdress -  14380
-    general                        school swimsuit -  14318
-    general                             panty pull -  14299
-    general                            orange eyes -  14101
-    general                           off shoulder -  14098
-    general                              wide hips -  14056
-    general                                   sash -  14045
-    general                                  teeth -  14009
-    general                                cosplay -  13996
-    general                                  curvy -  13971
-    general                              thigh gap -  13903
-    general                                   hood -  13834
-    general                                leotard -  13729
-    general                                  groin -  13723
-    general                              grey hair -  13700
-    general                         underwear only -  13641
-    general                                   scan -  13617
-    general                               umbrella -  13571
-    general                      hair over one eye -  13529
-    general                                  dated -  13434
-    character                        hakurei reimu -  13401
-    general                              bent over -  13365
-    general                       arms behind back -  13314
-    general                              signature -  13307
-    general                                   hips -  13279
-    general                                 arm up -  13156
-    general                            arm support -  13154
-    general                              witch hat -  13111
-    general                             hair tubes -  12907
-    general                                   rose -  12815
-    general                                    10s -  12777
-    general                         mound of venus -  12764
-    general                              bare legs -  12737
-    general                    alternate hairstyle -  12724
-    general                               lipstick -  12486
-    general                             drill hair -  12484
-    general                              bat wings -  12472
-    general                          garter straps -  12446
-    general                                   back -  12439
-    general                                 bowtie -  12422
-    general                        side-tie bikini -  12390
-    general                            blunt bangs -  12372
-    general                                   bell -  12252
-    general                            two side up -  12159
-    general                               military -  12140
-    general                                  soles -  12036
-    general                                   mole -  12012
-    general                               footwear -  11979
-    general                        leaning forward -  11977
-    copyright                               capcom -  11969
-    character                      flandre scarlet -  11899
-    general                                   text -  11853
-    copyright                        final fantasy -  11840
-    general                                 saliva -  11825
-    general                           masturbation -  11808
-    general                                glowing -  11766
-    general                                  hands -  11567
-    general                                on side -  11482
-    general                                  pants -  11446
-    general                           hair bobbles -  11445
-    general                                  blood -  11435
-    general                             double bun -  11408
-    general                            white dress -  11290
-    general                               covering -  11272
-    general                           monster girl -  11228
-    general                            dress shirt -  11169
-    general                                      v -  11034
-    general                                capelet -  11028
-    general                               no pants -  11025
-    copyright                                k-on! -  10985
-    general                              tokin hat -  10971
-    general                                   leaf -  10951
-    general                          puffy nipples -  10949
-    general                             hat ribbon -  10945
-    general                                  tagme -  10942
-    general                                 nature -  10926
-    general                                  night -  10882
-    general                            plaid skirt -  10810
-    general                   convenient censoring -  10777
-    general                   symbol-shaped pupils -  10777
-    general                            cum on body -  10761
-    general                             from below -  10750
-    general                            embarrassed -  10748
-    general                             from above -  10664
-    general                              sweatdrop -  10656
-    copyright                              pokemon -  10618
-    general                         copyright name -  10606
-    general                              head tilt -  10592
-    general                                  cover -  10589
-    general                           single braid -  10572
-    general                               eyebrows -  10537
-    general                                 katana -  10453
-    general                               headgear -  10417
-    general                              skirt set -  10345
-    general                               fox ears -  10318
-    general                               eyepatch -  10302
-    general                                 tattoo -  10287
-    copyright       love live! school idol project -  10279
-    general                            fingernails -  10202
-    general                       military uniform -  10187
-    general                       side-tie panties -  10179
-    general                            light smile -  10111
-    general                          heterochromia -  10094
-    general                           thick thighs -  10065
-    copyright      the embodiment of scarlet devil -  10057
-    IN TOTAL: 370 TAGS
+    IN TOTAL: 206 TAGS
 
 
 
@@ -512,18 +383,20 @@ print("Mean:", np.mean(tag_count))
 print("Standard derivation:", np.std(tag_count))
 ```
 
-    Mean: 46622.5972973
-    Standard derivation: 67171.8349073
+    Mean: 72823.9223301
+    Standard derivation: 80927.2597798
 
 
 
 ```python
-plt.figure(figsize=(10, 5))
+plt.figure(figsize=(8, 4))
 plt.plot(range(1, len(tag_count) + 1), tag_count, "bo", markersize=1)
+plt.axhspan(np.mean(tag_count), np.mean(tag_count) + np.std(tag_count), alpha=0.3)
+plt.axvspan(24, 57, alpha=0.3)  # Hardcoded; ugly!
 plt.ylabel("count")
 plt.show()
 ```
 
 
-![png](output_18_0.png)
+![png](output_22_0.png)
 
