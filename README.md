@@ -5,15 +5,23 @@ General idea: Take many labeled images from the Internet and throw them into dif
 Step 1: Data aquisition
 --------------
 Parse [Gelbooru](http://gelbooru.com/) (NSFW).
-1. Write textual results into SQLite Database. ✓
-    * Site Scraper ✓
-    * Database interface ✓
-    * Logging system for debugging runtime errors ✓
-2. Data analysis: Find promising labels/tags, sizes and other useful attributes.
-3. Download appropriate images.
-4. (Optional) Preprocessing of images. (Greyscale, Crop, Resizing)
+Idea: Write textual results into SQLite Database. ✓
+* Site Scraper ✓
+* Database interface ✓
+* Logging system for debugging runtime errors ✓
 
-Step 2: Network architecture
+Step 2: Data analysis
+--------------
+Goal: Find promising labels/tags, sizes and other useful attributes.
+- Check if data is reliable.
+- Find some categories and check their usefulness.
+- Filter useless data:
+    - Minimal aspect ratio 2:1
+    - Minimal size 200x200
+
+[Click here for the current results.](results/analysis.md)
+
+Step 3: Network architecture
 --------------
 Use TensorFlow. (Yuck! Google!)
 And read a lot of papers/tutorials.
@@ -23,9 +31,15 @@ Ideas:
 * Image recognition/ automatic labeling.
 * Generating networks for my very own AI generated Waifu.
 
-Step 3: Training and Profiling
+Step 4: Training and Profiling
 --------------
 Or: How to find a PC with Nvidia GPU which is fast enough for processing all this data.
+1. Download appropriate images.
+2. (Optional) Preprocessing of images. (Greyscale, Crop, Resizing)
+3. Feed them into the NN and wait.
+
+Idea: Use pool computers for training. 
+Save images at some online storage and dynamically load them (in e.g. 100 MB batches) for training.
 
 Dependencies
 --------------
