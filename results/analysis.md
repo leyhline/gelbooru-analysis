@@ -392,7 +392,6 @@ print("Standard derivation:", np.std(tag_count))
 plt.figure(figsize=(8, 4))
 plt.plot(range(1, len(tag_count) + 1), tag_count, "bo", markersize=1)
 plt.axhspan(np.mean(tag_count), np.mean(tag_count) + np.std(tag_count), alpha=0.3)
-plt.axvspan(24, 57, alpha=0.3)  # Hardcoded; ugly!
 plt.ylabel("count")
 plt.show()
 ```
@@ -400,3 +399,19 @@ plt.show()
 
 ![png](output_22_0.png)
 
+
+Idea. Define categories by these tags:
+* nude
+* school uniform
+* swimsuit
+* japanese clothes
+* dress
+* shorts, shirt
+
+*Check to what extend the id's for these tags are disjoint.*
+
+Maybe use some additional features:
+* loli
+* cat ears, cat tail
+
+*These tags do not to be disjoint.*
