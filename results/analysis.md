@@ -2,10 +2,12 @@
 
 ```python
 import sqlite3
+import operator
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 from functools import reduce
+from math import log
 ```
 
 
@@ -19,7 +21,7 @@ timeformat = "%Y-%m-%d %H:%M:%S"
 ```python
 ## Create some useful views for the upcoming analysis.
 # Create view that counts the tags grouped by its name.
-cur.execute("CREATE TEMP VIEW tag_count AS " +
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS tag_count AS " +
             "SELECT tag.id AS id, tag.name AS name, COUNT(tags.view) AS count " +
             "FROM tag JOIN tags ON tag.id = tags.tag " +
             "GROUP BY tag.name HAVING tag.name <> '1girl' AND tag.name <> 'solo'")
@@ -61,7 +63,33 @@ print("Number of tags: {}".format(tag_count))
     Number of tags: 213432
 
 
-## Distribution of posts
+
+```python
+id_diff_dict = dict()
+last_row = 0
+for row in cur.execute("SELECT id FROM view ORDER BY id ASC"):
+    key = row[0] - last_row
+    last_row = row[0]
+    value = id_diff_dict.setdefault(key, 0)
+    id_diff_dict[key] = value + 1
+```
+
+
+```python
+id_diff_x, id_diff_y = zip(*sorted(id_diff_dict.items(), key=operator.itemgetter(0)))
+plt.bar(range(len(id_diff_x)), [log(y,2) for y in id_diff_y])
+plt.xticks(range(0, len(id_diff_x), 15), id_diff_x[::15])
+plt.title("Histogram for distance between post ids (logarithmic)")
+plt.xlabel("Distance")
+plt.ylabel("log(Occurences)")
+plt.show()
+```
+
+
+![png](output_9_0.png)
+
+
+Data seems rather consistent. No outliers.
 
 
 ```python
@@ -78,8 +106,10 @@ plt.show()
 ```
 
 
-![png](output_10_0.png)
+![png](output_12_0.png)
 
+
+Wow. Seems like there is more safe content than I thought.
 
 # Time series
 
@@ -140,8 +170,11 @@ plt.show()
 ```
 
 
-![png](output_16_0.png)
+![png](output_19_0.png)
 
+
+Again, I think it is rather suprising how much the gap between total uploads and explicit content stays consistant.
+I thought the gap would widen with the passing of time.
 
 # Tag analysis
 
@@ -397,7 +430,7 @@ plt.show()
 ```
 
 
-![png](output_22_0.png)
+![png](output_26_0.png)
 
 
 Idea. Define categories by these tags:
@@ -406,12 +439,278 @@ Idea. Define categories by these tags:
 * swimsuit
 * japanese clothes
 * dress
-* shorts, shirt
+* shirt (for casual style)
 
 *Check to what extend the id's for these tags are disjoint.*
 
 Maybe use some additional features:
 * loli
-* cat ears, cat tail
+* cat ears
 
-*These tags do not to be disjoint.*
+*These tags do not need to be disjoint.*
+
+
+```python
+selected_tags = ("nude", "school uniform", "swimsuit", "japanese clothes", "dress", "shirt", "loli", "cat ears")
+```
+
+
+```python
+# Create views for the tags above.
+for tag in selected_tags:
+    cur.execute("CREATE TEMP VIEW IF NOT EXISTS {} AS ".format(tag.replace(" ", "_")) +
+                "SELECT view FROM tags JOIN tag ON tags.tag = tag.id " +
+                "WHERE tag.name = '{}'".format(tag))
+con.commit()
+```
+
+
+```python
+# Count the specified tags.
+print("{0:>20}  {1:>6}".format("Tag name", "Count"))
+print("-" * 40)
+selected_tag_count = dict()
+for tag in selected_tags:
+    cur.execute("SELECT COUNT(*) FROM {}".format(tag.replace(" ", "_")))
+    selected_tag_count[tag] = cur.fetchone()[0]
+    print("{0:>20}: {1:6d}".format(tag, selected_tag_count[tag]))
+```
+
+                Tag name   Count
+    ----------------------------------------
+                    nude:  82642
+          school uniform: 107694
+                swimsuit:  86959
+        japanese clothes:  50709
+                   dress: 147464
+                   shirt:  89891
+                    loli:  32649
+                cat ears:  37377
+
+
+
+```python
+# Count the specified tags with safe content.
+print("{0:>20}  {1:>6} (SAFE)".format("Tag name", "Count"))
+print("-" * 40)
+selected_tag_count_safe = dict()
+for tag in selected_tags:
+    cur.execute("SELECT COUNT(*) FROM {0} JOIN rates ON {0}.view = rates.view ".format(tag.replace(" ", "_")) +
+                "WHERE rates.rating = 1")
+    selected_tag_count_safe[tag] = cur.fetchone()[0]
+    print("{0:>20}: {1:6d}".format(tag, selected_tag_count_safe[tag]))
+```
+
+                Tag name   Count (SAFE)
+    ----------------------------------------
+                    nude:   2317
+          school uniform:  81192
+                swimsuit:  50474
+        japanese clothes:  40819
+                   dress: 126407
+                   shirt:  56457
+                    loli:      0
+                cat ears:  24542
+
+
+Seems like "loli" is used as some kind of fetish word here. (No safe loli pics! Whats wrong with the world?)
+
+
+```python
+selected_tag_count_sorted = sorted(selected_tag_count.items(), key=operator.itemgetter(1), reverse=True)
+x, y1 = zip(*selected_tag_count_sorted)
+y2 = [selected_tag_count_safe[tag] for tag in x]
+plt.bar(range(0, 2 * len(x), 2), y1)
+plt.bar(range(1, 2 * len(x) + 1, 2), y2, color="cyan")
+plt.axhline(np.mean(tag_count), color="black")
+plt.xticks(range(1, 2 * len(x) + 1, 2), x, rotation=-90)
+plt.xlabel("Tag names")
+plt.ylabel("Number of posts")
+plt.legend(["Mean", "All", "Safe"])
+plt.show()
+```
+
+
+![png](output_33_0.png)
+
+
+
+```python
+# Use ordered tags for further processing.
+selected_tags = x
+selected_tag_count = y1
+```
+
+
+```python
+# Check how disjoint the posts for these tags are.
+disjoint_tags = [(x.replace(" ", "_"), y.replace(" ", "_"))
+                 for x in selected_tags for y in selected_tags if x != y]
+disjoint_tag_count = []
+for tags in disjoint_tags:
+    cur.execute("SELECT COUNT(*) FROM " +
+                    "(SELECT view FROM {} ".format(tags[0]) + 
+                     "INTERSECT " +
+                     "SELECT view FROM {})".format(tags[1]))
+    disjoint_tag_count.append(cur.fetchone()[0])
+```
+
+
+```python
+disjoint_tag_array = [disjoint_tag_count[i:][:len(selected_tags) - 1] 
+                      for i in range(0, len(disjoint_tag_count), len(selected_tags) - 1)]
+disjoint_tag_array = np.array(disjoint_tag_array)
+```
+
+
+```python
+fig = plt.figure(figsize=(len(selected_tags), len(selected_tags)))
+for i in range(0, len(selected_tags)):
+    ax = fig.add_subplot(2, 4, i + 1)
+    bars = ax.bar(range(len(selected_tags) - 1), disjoint_tag_array[i,:] / selected_tag_count[i])
+    ax.set_title(tag1[i * (len(selected_tags) - 1)])
+    ax.set_xticks(np.arange(len(selected_tags) - 1) + 0.4)
+    ax.set_xticklabels(tag2[i * (len(selected_tags) - 1):][:(len(selected_tags) - 1)], rotation=-90)
+    ax.set_ylim([0, 0.20])
+    r = 0.
+    for bar in bars:
+        bar.set_color((r, 0, 1 - r))
+        r += 0.16
+fig.tight_layout()
+plt.show()
+```
+
+
+![png](output_37_0.png)
+
+
+This is the most important plot of this notebook. Here you can see how many images are tagged with another tag than the main tag. That is bad because I want the sets of images to be as disjoint as possible. (Goal: Categorizing instead of automatic tagging.)
+
+### Results
+
+* The **loli** tag seems to be useless. These lolis wear no clothes.
+* The **nude** tag is very nice. Most of the time you can count on its correctness.
+* **cat ears** are okayish… But this is only a nice extra so I think it is better to not use this tag.
+* **japanese clothes** are nice as well.
+* As well as **swim suits**.
+* And the **dress** tag is suprisingly disjoint, too.
+* As expected the **shirt** tag is the most problematic.
+* Directly followed by **school uniform**
+
+Firstly, do not use *loli* for *cat ears* any further.
+
+### What to do now
+
+(You should really read about mathematical notation in Jupyter.)
+
+1. nude' := {nude} - ALL
+2. swimsuit' := {swimsuit} - ALL
+3. japanese' := {japanese clothes} - {nude} - {swimsuit} - {school uniform}
+4. dress' := {dress} - ALL
+5. school' := {school uniform} - {dress} - {swimsuit} - {nude} - japanese'
+6. shirt' := {shirt} - {nude} - dress' - school' - {swimsuit} - {japanese clothes}
+
+
+```python
+# nude'
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS nude_filtered AS "
+            "SELECT * FROM nude " +
+            "EXCEPT SELECT * FROM dress " +
+            "EXCEPT SELECT * FROM school_uniform " +
+            "EXCEPT SELECT * FROM shirt " +
+            "EXCEPT SELECT * FROM swimsuit " +
+            "EXCEPT SELECT * FROM japanese_clothes")
+con.commit()
+```
+
+
+```python
+# swimsuit'
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS swimsuit_filtered AS "
+            "SELECT * FROM swimsuit " +
+            "EXCEPT SELECT * FROM dress " +
+            "EXCEPT SELECT * FROM school_uniform " +
+            "EXCEPT SELECT * FROM shirt " +
+            "EXCEPT SELECT * FROM nude " +
+            "EXCEPT SELECT * FROM japanese_clothes")
+con.commit()
+```
+
+
+```python
+# japanese'
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS japanese_filtered AS "
+            "SELECT * FROM japanese_clothes " +
+            "EXCEPT SELECT * FROM school_uniform " +
+            "EXCEPT SELECT * FROM swimsuit " +
+            "EXCEPT SELECT * FROM nude")
+con.commit()
+```
+
+
+```python
+# dress'
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS dress_filtered AS "
+            "SELECT * FROM dress " +
+            "EXCEPT SELECT * FROM swimsuit " +
+            "EXCEPT SELECT * FROM school_uniform " +
+            "EXCEPT SELECT * FROM shirt " +
+            "EXCEPT SELECT * FROM nude " +
+            "EXCEPT SELECT * FROM japanese_clothes")
+con.commit()
+```
+
+
+```python
+# 'school
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS school_filtered AS "
+            "SELECT * FROM school_uniform " +
+            "EXCEPT SELECT * FROM dress " +
+            "EXCEPT SELECT * FROM swimsuit " +
+            "EXCEPT SELECT * FROM nude " +
+            "EXCEPT SELECT * FROM japanese_filtered")
+con.commit()
+```
+
+
+```python
+# shirt'
+cur.execute("CREATE TEMP VIEW IF NOT EXISTS shirt_filtered AS "
+            "SELECT * FROM shirt " +
+            "EXCEPT SELECT * FROM japanese_clothes " +
+            "EXCEPT SELECT * FROM swimsuit " +
+            "EXCEPT SELECT * FROM nude " +
+            "EXCEPT SELECT * FROM dress_filtered " +
+            "EXCEPT SELECT * FROM school_filtered")
+con.commit()
+```
+
+
+```python
+count_current = []
+cur.execute("SELECT COUNT(*) FROM nude_filtered")
+count_current.append(cur.fetchone()[0])
+cur.execute("SELECT COUNT(*) FROM swimsuit_filtered")
+count_current.append(cur.fetchone()[0])
+cur.execute("SELECT COUNT(*) FROM japanese_filtered")
+count_current.append(cur.fetchone()[0])
+cur.execute("SELECT COUNT(*) FROM dress_filtered")
+count_current.append(cur.fetchone()[0])
+cur.execute("SELECT COUNT(*) FROM school_filtered")
+count_current.append(cur.fetchone()[0])
+cur.execute("SELECT COUNT(*) FROM shirt_filtered")
+count_current.append(cur.fetchone()[0])
+```
+
+
+```python
+labels = ["Nude", "Swimsuit", "Japanese Clothes", "Dress", "School Uniform", "Shirt"]
+plt.pie(count_current, labels=labels, autopct=lambda x: 
+        str(int(x / 100. * sum(count_current))) + "\n" + "({:.2g}%)".format(x))
+plt.axis("equal")
+plt.show()
+```
+
+
+![png](output_46_0.png)
+
