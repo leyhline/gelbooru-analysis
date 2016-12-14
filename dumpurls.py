@@ -73,8 +73,14 @@ if __name__ == "__main__":
         # Filter these tags by aspect ratio and size and print its size.
         for tag in selected_tags_dj:
             if DEBUG:  
-                statement = ("SELECT COUNT(view.url) FROM {0} JOIN view ON {0}.view = view.id ".format(tag)
+                statement = ("SELECT COUNT(view.url) FROM {0} JOIN view ON {0}.view = view.id "
                              "WHERE NOT(xsize < 200 or ysize < 200) "
-                             "AND (xsize * 1.0) / (ysize * 1.0) >= 0.5 AND (xsize * 1.0) / (ysize * 1.0) <= 2.0")
+                             "AND (xsize * 1.0) / (ysize * 1.0) >= 0.5 AND (xsize * 1.0) / (ysize * 1.0) <= 2.0".format(tag))
                 for row in db.execute(statement):
                     print(tag, row[0])
+            with open("data/" + tag[:4] + "_url.txt", "w") as f:
+                statement = ("SELECT view.url, view.id FROM {0} JOIN view ON {0}.view = view.id "
+                             "WHERE NOT(xsize < 200 or ysize < 200) "
+                             "AND (xsize * 1.0) / (ysize * 1.0) >= 0.5 AND (xsize * 1.0) / (ysize * 1.0) <= 2.0".format(tag))
+                for row in db.execute(statement):
+                    f.write(row[0] + " " + str(row[1]) + "\n")
