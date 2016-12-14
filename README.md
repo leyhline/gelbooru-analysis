@@ -2,15 +2,16 @@ Because deep learning seems to be the hot shit atm I'd like to do some experimen
 
 General idea: Take many labeled images from the Internet and throw them into different neural network architectures.
 
-Step 1: Data aquisition
+Step 1: Data aquisition ✓
 --------------
 Parse [Gelbooru](http://gelbooru.com/) (NSFW).
-Idea: Write textual results into SQLite Database. ✓
+Idea: Write textual results into SQLite Database. 
+[The database schema is defined here.](src/create_tables.sql)
 * Site Scraper ✓
 * Database interface ✓
 * Logging system for debugging runtime errors ✓
 
-Step 2: Data analysis
+Step 2: Data analysis ✓
 --------------
 Goal: Find promising labels/tags, sizes and other useful attributes.
 - Check if data is reliable.
