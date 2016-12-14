@@ -99,3 +99,11 @@ class BooruDB:
             raise err
         finally:
             logging.info("Inserting view {} into database.".format(booru_view.uid))
+
+    def execute(self, statement):
+        """
+        Execute the given SQL statement. There is no commit so you should
+        not be able to insert or delete stuff.
+        You can iterate over the return value for fetching stuff.
+        """
+        return self._cur.execute(statement)
