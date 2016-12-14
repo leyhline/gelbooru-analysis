@@ -560,6 +560,7 @@ for tags in disjoint_tags:
 disjoint_tag_array = [disjoint_tag_count[i:][:len(selected_tags) - 1] 
                       for i in range(0, len(disjoint_tag_count), len(selected_tags) - 1)]
 disjoint_tag_array = np.array(disjoint_tag_array)
+tag1, tag2 = zip(*disjoint_tags)
 ```
 
 
@@ -687,30 +688,49 @@ con.commit()
 
 
 ```python
+filtered_view_names = ("nude_filtered", "swimsuit_filtered", "japanese_filtered",
+                       "dress_filtered", "school_filtered", "shirt_filtered")
 count_current = []
-cur.execute("SELECT COUNT(*) FROM nude_filtered")
-count_current.append(cur.fetchone()[0])
-cur.execute("SELECT COUNT(*) FROM swimsuit_filtered")
-count_current.append(cur.fetchone()[0])
-cur.execute("SELECT COUNT(*) FROM japanese_filtered")
-count_current.append(cur.fetchone()[0])
-cur.execute("SELECT COUNT(*) FROM dress_filtered")
-count_current.append(cur.fetchone()[0])
-cur.execute("SELECT COUNT(*) FROM school_filtered")
-count_current.append(cur.fetchone()[0])
-cur.execute("SELECT COUNT(*) FROM shirt_filtered")
-count_current.append(cur.fetchone()[0])
+for name in filtered_view_names:
+    cur.execute("SELECT COUNT(*) FROM {}".format(name))
+    count_current.append(cur.fetchone()[0])
 ```
 
 
 ```python
+print("Sum:", sum(count_current))
+print("Filter small images with sizes on x or y axis < 200.")
+print("Filter images with weird aspect ratio < 2:1.")
+count_current_filtered = []
+for name in filtered_view_names:
+    cur.execute("SELECT COUNT({0}.view) FROM {0} JOIN view ON {0}.view = view.id ".format(name) +
+                "WHERE NOT(xsize < 200 or ysize < 200) " +
+                "AND (xsize * 1.0) / (ysize * 1.0) >= 0.5 AND (xsize * 1.0) / (ysize * 1.0) <= 2.0")
+    count_current_filtered.append(cur.fetchone()[0])
+print("Filtered sum:", sum(count_current_filtered))
+```
+
+    Sum: 524821
+    Filter small images with sizes on x or y axis < 200.
+    Filter images with weird aspect ratio < 2:1.
+    Filtered sum: 511706
+
+
+
+```python
+fig = plt.figure(figsize=(9,3))
 labels = ["Nude", "Swimsuit", "Japanese Clothes", "Dress", "School Uniform", "Shirt"]
-plt.pie(count_current, labels=labels, autopct=lambda x: 
+ax1 = fig.add_subplot(121)
+ax1.pie(count_current, labels=labels, autopct=lambda x: 
         str(int(x / 100. * sum(count_current))) + "\n" + "({:.2g}%)".format(x))
-plt.axis("equal")
+ax2 = fig.add_subplot(122)
+ax2.pie(count_current_filtered, labels=labels, autopct=lambda x: 
+        str(int(x / 100. * sum(count_current))) + "\n" + "({:.2g}%)".format(x))
+ax1.axis("equal")
+ax2.axis("equal")
 plt.show()
 ```
 
 
-![png](output_46_0.png)
+![png](output_47_0.png)
 
