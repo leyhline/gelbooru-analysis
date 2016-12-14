@@ -6,10 +6,11 @@ Step 1: Data aquisition ✓
 --------------
 Parse [Gelbooru](http://gelbooru.com/) (NSFW).
 Idea: Write textual results into SQLite Database. 
-[The database schema is defined here.](src/create_tables.sql)
 * Site Scraper ✓
 * Database interface ✓
 * Logging system for debugging runtime errors ✓
+
+[The database schema is defined here.](src/create_tables.sql)
 
 Step 2: Data analysis ✓
 --------------
@@ -21,6 +22,8 @@ Goal: Find promising labels/tags, sizes and other useful attributes.
     - Minimal size 200x200
 
 [Click here for the current results.](results/analysis.md)
+
+**Important:** If you want to run you own analysis [you need to unpack the database first](data/README.md).
 
 Step 3: Network architecture
 --------------
