@@ -25,8 +25,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS tag_count AS " +
             "SELECT tag.id AS id, tag.name AS name, COUNT(tags.view) AS count " +
             "FROM tag JOIN tags ON tag.id = tags.tag " +
             "GROUP BY tag.name HAVING tag.name <> '1girl' AND tag.name <> 'solo'")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 # General information
 
@@ -461,7 +467,6 @@ for tag in selected_tags:
     cur.execute("CREATE TEMP VIEW IF NOT EXISTS {} AS ".format(tag.replace(" ", "_")) +
                 "SELECT view FROM tags JOIN tag ON tags.tag = tag.id " +
                 "WHERE tag.name = '{}'".format(tag))
-con.commit()
 ```
 
 
@@ -621,8 +626,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS nude_filtered AS "
             "EXCEPT SELECT * FROM shirt " +
             "EXCEPT SELECT * FROM swimsuit " +
             "EXCEPT SELECT * FROM japanese_clothes")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 
 ```python
@@ -634,8 +645,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS swimsuit_filtered AS "
             "EXCEPT SELECT * FROM shirt " +
             "EXCEPT SELECT * FROM nude " +
             "EXCEPT SELECT * FROM japanese_clothes")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 
 ```python
@@ -645,8 +662,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS japanese_filtered AS "
             "EXCEPT SELECT * FROM school_uniform " +
             "EXCEPT SELECT * FROM swimsuit " +
             "EXCEPT SELECT * FROM nude")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 
 ```python
@@ -658,8 +681,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS dress_filtered AS "
             "EXCEPT SELECT * FROM shirt " +
             "EXCEPT SELECT * FROM nude " +
             "EXCEPT SELECT * FROM japanese_clothes")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 
 ```python
@@ -670,8 +699,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS school_filtered AS "
             "EXCEPT SELECT * FROM swimsuit " +
             "EXCEPT SELECT * FROM nude " +
             "EXCEPT SELECT * FROM japanese_filtered")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 
 ```python
@@ -683,8 +718,14 @@ cur.execute("CREATE TEMP VIEW IF NOT EXISTS shirt_filtered AS "
             "EXCEPT SELECT * FROM nude " +
             "EXCEPT SELECT * FROM dress_filtered " +
             "EXCEPT SELECT * FROM school_filtered")
-con.commit()
 ```
+
+
+
+
+    <sqlite3.Cursor at 0x7fecc3e671f0>
+
+
 
 
 ```python
@@ -721,11 +762,9 @@ print("Filtered sum:", sum(count_current_filtered))
 fig = plt.figure(figsize=(9,3))
 labels = ["Nude", "Swimsuit", "Japanese Clothes", "Dress", "School Uniform", "Shirt"]
 ax1 = fig.add_subplot(121)
-ax1.pie(count_current, labels=labels, autopct=lambda x: 
-        str(int(x / 100. * sum(count_current))) + "\n" + "({:.2g}%)".format(x))
+ax1.pie(count_current, labels=labels, autopct='%1.1f%%')
 ax2 = fig.add_subplot(122)
-ax2.pie(count_current_filtered, labels=labels, autopct=lambda x: 
-        str(int(x / 100. * sum(count_current))) + "\n" + "({:.2g}%)".format(x))
+ax2.pie(count_current_filtered, labels=labels, autopct='%1.1f%%')
 ax1.axis("equal")
 ax2.axis("equal")
 plt.show()
@@ -733,4 +772,20 @@ plt.show()
 
 
 ![png](output_47_0.png)
+
+
+
+```python
+print("{:22}{:10}{:10}".format("", "Tags", "Filtered"))
+for i in range(len(count_current)):
+    print("{:20}{:10d}{:10d}".format(labels[i], count_current[i], count_current_filtered[i]))
+```
+
+                          Tags      Filtered  
+    Nude                     80248     78069
+    Swimsuit                 81329     79023
+    Japanese Clothes         49831     48883
+    Dress                   136825    133964
+    School Uniform          102176     99091
+    Shirt                    74412     72676
 
