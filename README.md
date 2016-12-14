@@ -21,7 +21,7 @@ Goal: Find promising labels/tags, sizes and other useful attributes.
     - Minimal aspect ratio 2:1
     - Minimal size 200x200
 
-[Click here for the current results.](results/analysis.md)
+[Click here for the current results.](results/README.md)
 
 **Important:** If you want to run you own analysis [you need to unpack the database first](data/README.md).
 
