@@ -8,7 +8,7 @@ from urllib.request import urlretrieve
 EXCEPTION_LIMIT = 10
 MAX_WORKERS = 4
 exception_counter = 0
-logging.basicConfig(filename="download.log", filemode="w", level=logging.INFO,
+logging.basicConfig(filename="download.log", filemode="a", level=logging.INFO,
                     format = "%(asctime)s - %(levelname)s - %(message)s")
 
 
