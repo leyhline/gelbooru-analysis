@@ -33,12 +33,13 @@ Using the AKAZE feature detector to find a nice window for cropping.
 (I don't think it was intended to use feature detection for something like cropping.)
 
 - Target size: 200x200
-- Output format: uncompressed WebP
+- Output format: lossless WebP
 
 Step 4: Network architecture
 --------------
 ~~Use TensorFlow. (Yuck! Google!)~~
-Better: Use [Keras](https://keras.io/)
+
+Better: Use [Keras](https://keras.io/) with TensorFlow backend.
 And read a lot of papers/tutorials.
 
 Ideas: 
@@ -64,6 +65,9 @@ Dependencies
 2. Data analysis
     * jupyter
     * matplotlib
+    * numpy
+3. Data preprocessing
+    * opencv-python (3.1)
 
 Inspiration
 --------------
