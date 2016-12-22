@@ -14,7 +14,7 @@ import cv2
 import numpy as np
 
 TARGET_SIZE = 200
-OUTPUT_FORMAT = ".png"
+OUTPUT_FORMAT = ".webp"
 FEATURE_DETECTOR = cv2.AKAZE_create()
 
 def crop(img):
