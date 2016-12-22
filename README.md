@@ -25,9 +25,20 @@ Goal: Find promising labels/tags, sizes and other useful attributes.
 
 **Important:** If you want to run you own analysis [you need to unpack the database first](data/README.md).
 
-Step 3: Network architecture
+Step 3: Data preprocessing ✓
 --------------
-Use TensorFlow. (Yuck! Google!)
+Crop and resize images so that all the images have the same size.
+
+Using the AKAZE feature detector to find a nice window for cropping.
+(I don't think it was intended to use feature detection for something like cropping.)
+
+- Target size: 200x200
+- Output format: uncompressed WebP
+
+Step 4: Network architecture
+--------------
+~~Use TensorFlow. (Yuck! Google!)~~
+Better: Use [Keras](https://keras.io/)
 And read a lot of papers/tutorials.
 
 Ideas: 
@@ -35,7 +46,7 @@ Ideas:
 * Image recognition/ automatic labeling.
 * Generating networks for my very own AI generated Waifu.
 
-Step 4: Training and Profiling
+Step 5: Training and Profiling
 --------------
 Or: How to find a PC with Nvidia GPU which is fast enough for processing all this data.
 1. Download appropriate images.
