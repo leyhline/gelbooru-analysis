@@ -17,6 +17,7 @@ TARGET_SIZE = 200
 OUTPUT_FORMAT = ".webp"
 FEATURE_DETECTOR = cv2.AKAZE_create()
 
+
 def crop(img):
     """
     Crop image to make it quadratic using a feature detector for finding a nice center.
@@ -47,6 +48,30 @@ def crop(img):
         dst = img[:,imax:imax+smallest]
     return dst
 
+
+def process_file(file, output_path):
+    filename, img = file
+    ysize, xsize = img.shape[:2]
+    if xsize < TARGET_SIZE or ysize < TARGET_SIZE:
+        print("Image size too small: {} x {}".format(xsize, ysize))
+        return
+    # Resize image.
+    if xsize > ysize:
+        xsize = round(xsize / ysize * TARGET_SIZE)
+        ysize = TARGET_SIZE
+    elif xsize < ysize:
+        ysize = round(ysize / xsize * TARGET_SIZE)
+        xsize = TARGET_SIZE
+    else:
+        xsize = ysize = TARGET_SIZE
+    dst = cv2.resize(img, (xsize, ysize), interpolation=cv2.INTER_AREA)
+    # Crop image if it is not already quadratic.
+    if not xsize == ysize:
+        dst = crop(dst)
+    base, ext = os.path.splitext(filename)
+    cv2.imwrite(output_path + "/" + base + OUTPUT_FORMAT, dst)
+
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Wrong number of arguments.")
@@ -58,23 +83,4 @@ if __name__ == "__main__":
     images = ((file, cv2.imread(path + "/" + file)) for file in files
               if cv2.imread(path + "/" + file) is not None)
     for file in images:
-        filename, img = file
-        ysize, xsize = img.shape[:2]
-        if xsize < TARGET_SIZE or ysize < TARGET_SIZE:
-            print("Image size too small: {} x {}".format(xsize, ysize))
-            continue
-        # Resize image.
-        if xsize > ysize:
-            xsize = round(xsize / ysize * TARGET_SIZE)
-            ysize = TARGET_SIZE
-        elif xsize < ysize:
-            ysize = round(ysize / xsize * TARGET_SIZE)
-            xsize = TARGET_SIZE
-        else:
-            xsize = ysize = TARGET_SIZE
-        dst = cv2.resize(img, (xsize, ysize), interpolation=cv2.INTER_AREA)
-        # Crop image if it is not already quadratic.
-        if not xsize == ysize:
-            dst = crop(dst)
-        base, ext = os.path.splitext(filename)
-        cv2.imwrite(output_path + "/" + base + OUTPUT_FORMAT, dst)
+        process_file(file, output_path)
