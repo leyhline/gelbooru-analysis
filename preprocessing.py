@@ -10,12 +10,14 @@ Save images as lossless WebP (or whatever other format specified in OUTPUT_FORMA
 
 import sys
 import os
+import concurrent.futures
 import cv2
 import numpy as np
 
 TARGET_SIZE = 200
 OUTPUT_FORMAT = ".webp"
 FEATURE_DETECTOR = cv2.AKAZE_create()
+MAX_WORKERS = 4
 
 
 def crop(img):
@@ -82,5 +84,6 @@ if __name__ == "__main__":
     os.makedirs(output_path, exist_ok=True)
     images = ((file, cv2.imread(path + "/" + file)) for file in files
               if cv2.imread(path + "/" + file) is not None)
-    for file in images:
-        process_file(file, output_path)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as e:
+        for file in images:
+            e.submit(process_file, file, output_path)
