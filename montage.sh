@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Copyright (C) 2017 Thomas Leyh
+# Licenced under GPLv3
+
+# Usage: montage IMAGE_DIR [ OUTPUT_FILE ]
+# Created a montage with 10x10 tiles from 100 randomly selected image files in IMAGE_DIR.
+# You may specify the name of the output with OUTPUT_FILE.
+
 if [ $# -eq 1 ]; then
 	images=$1
 	dest=montage.png

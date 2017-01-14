@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+"""
+An interface to get metadata from gelbooru because I was too stupid to
+know about APIs.
+
+Also i used a bit too many generators and functional stuff.
+
+But the implementation itself is not that bad with all its abstractions.
+
+@copyright: 2017 Thomas Leyh
+@licence: GPLv3
+"""
+
+
 import re
 import os.path
 import logging

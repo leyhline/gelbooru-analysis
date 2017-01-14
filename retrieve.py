@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Search for images with specific tags on Gelbooru and
 write their metadata to a database.
@@ -41,6 +43,9 @@ OPTIONS
     
     -s
             step size for stepping through Id range
+
+@copyright: 2017 Thomas Leyh
+@licence: GPLv3
 """
 
 import yaml

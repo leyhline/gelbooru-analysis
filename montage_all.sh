@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Copyright (C) 2017 Thomas Leyh
+# Licenced under GPLv3
+
+# Takes all webp images from the data directory and below and
+# creates for all of these 10x10 tiled montages. The images are in random order.
+# Also saves textfiles with the names of the individual tiles
+# to make identifying them later possible.
+ 
+# Uses sem from GNU parallel for speedup which is a really cool software.
+# If you ever write about this project (haha...) don't forget to cite them.
+
 output_dir=/montage
 tiles=100
 

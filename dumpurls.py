@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Just a stupid script to read urls and ids from the sqlite database
+and put write them into files by category.
+
+Why does it look like this and what are the selection criteria for
+these categories? Take a look at the _results_ folder.
+
+@copyright: 2017 Thomas Leyh
+@licence: GPLv3
+"""
+
 import os
 import src.database
 

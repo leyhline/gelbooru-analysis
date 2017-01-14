@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# Copyright (C) 2017 Thomas Leyh
+# Licenced under GPLv3
+
 # Randomized slideshow using feh.
 # Usage: slideshow [DELAY] FOLDER
 #	 where FOLDER is the folder containing the images

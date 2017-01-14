@@ -1,3 +1,22 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Retrieve images (multithreaded) from gelbooru.
+
+Usage:
+You call the script with giving it a name of the file containing
+the urls and the ids (for naming the files with their id) seperated by linebreak.
+
+The script then tries to retrieve all these files and puts them into a new folder
+with the basename of the file in the same path.
+
+Unfortunately the implementation is really error prone if the server does not respond.
+(Meaning: the exception handling does not work.)
+
+@copyright: 2017 Thomas Leyh
+@licence: GPLv3
+"""
+
 import os
 import logging
 import urllib.error
@@ -13,6 +32,7 @@ logging.basicConfig(filename="download.log", filemode="a", level=logging.INFO,
 
 
 def retrieve_image(url, dest_path):
+    """Retrieves the image at url and downloads it to dest_path."""
     if not os.path.exists(dest_path):
         try:
             urlretrieve(url, dest_path)
@@ -33,6 +53,8 @@ def retrieve_image(url, dest_path):
 
 
 def download_images(list_entry, dest_folder):
+    """This function just gets some arguments ready for retrieve_image
+       which is the function which really does all the work."""
     url, uid = list_entry.split()
     dest_file = str(uid) + os.path.splitext(url)[1]
     dest_path = dest_folder + "/" + dest_file
@@ -59,6 +81,7 @@ if __name__ == "__main__":
     with open(inputpath) as f:
         for line in f:
             url_list.append(line)
+    # Calling download_images() with multiple threads.
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as e:
         for i in range(len(url_list)):
             e.submit(download_images, url_list[i], dest_folder)

@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+Database interface for writing metadata from gelbooru into a sqlite database.
+Open database per "with" statement.
+
+Example: with BooruDB() as db:
+            db.blah(blub)
+
+@copyright: 2017 Thomas Leyh
+@licence: GPLv3
+"""
+
 import sqlite3
 import os.path
 import logging

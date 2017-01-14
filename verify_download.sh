@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+
+# Copyright (C) 2017 Thomas Leyh
+# Licenced under GPLv3
+
 # Count images and check for corruptions using GraphicsMagick.
 # Usage: verify_download FOLDER
 #	 where FOLDER is the folder containing the images.

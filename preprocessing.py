@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script for batch cropping and scaling images.
+Script for batch cropping and scaling images. Speed up with multithreading.
 At the end all images should be quadratic and of the same size.
 Save images as lossless WebP (or whatever other format specified in OUTPUT_FORMAT).
 
-@author: Thomas Leyh
+Usage: preprocessing.py SOURCE_DIR
+
+@copyright: 2017 Thomas Leyh
+@licence: GPLv3
 """
 
 import sys
@@ -23,6 +26,7 @@ MAX_WORKERS = 4
 def crop(img):
     """
     Crop image to make it quadratic using a feature detector for finding a nice center.
+    (I know, feature detectors are not for something like this...)
     """
     kp = FEATURE_DETECTOR.detect(img)
     ysize, xsize = img.shape[:2]
@@ -52,6 +56,8 @@ def crop(img):
 
 
 def process_file(file, output_path):
+    """Preprocesses given image. Using crop and resize if necessary.
+       Save resulting image in webp format."""
     filename, img = file
     ysize, xsize = img.shape[:2]
     if xsize < TARGET_SIZE or ysize < TARGET_SIZE:
