@@ -90,6 +90,6 @@ if __name__ == "__main__":
     os.makedirs(output_path, exist_ok=True)
     images = ((file, cv2.imread(path + "/" + file)) for file in files
               if cv2.imread(path + "/" + file) is not None)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as e:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as e:
         for file in images:
             e.submit(process_file, file, output_path)
