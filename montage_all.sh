@@ -11,10 +11,10 @@
 # Uses sem from GNU parallel for speedup which is a really cool software.
 # If you ever write about this project (haha...) don't forget to cite them.
 
-output_dir=/montage
+output_dir=montage
 tiles=100
 
-cd data
+cd data/cuts
 # Create array of randomly shuffled images and count them.
 images=$(find -name "*.webp*" | sort -R)
 echo $images | tr " " "\n" > ${output_dir}/text/order.txt

@@ -16,9 +16,9 @@ import numpy as np
 
 
 # Training on the first 3000 files of given dir.
-TRAINING_CUT = (0, 3000)
+TRAINING_CUT = (0, 2000)
 # Default path if no arguments are given.
-PATH = "data/montage"
+PATH = "data/cuts/montage"
 
 
 def calculate_mean(images):
