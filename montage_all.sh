@@ -25,6 +25,6 @@ parallel --citation
 for i in `seq 0 $tiles $(( $count - $tiles ))`; do
     isplit=${images[@]:$i:$tiles}
     echo $isplit | tr " " "\n" > ${output_dir}/text/${i}.txt
-    sem -j+0 gm montage -geometry 200x200+0+0 -tile 10x10 -define webp:lossless=true $isplit ${output_dir}/${i}.webp ";" echo Montage of images $i to $(($i + $tiles)) constructed.
+    sem -j+0 gm montage -geometry 200x200+0+0 -tile 10x10 -define webp:lossless=false,webp:image-hint=picture $isplit ${output_dir}/${i}.webp ";" echo Montage of images $i to $(($i + $tiles)) constructed.
 done
 sem --wait
